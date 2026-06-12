@@ -31,8 +31,8 @@ function onReceiveRpc(id, bs)
         local color = raknetBitStreamReadInt32(bs)
         local len = raknetBitStreamReadInt32(bs)
         local str = raknetBitStreamReadString(bs, len)
-        if str:find("%[20]Smoant_Despasito[371] говорит:%) then
-            sampAddChatMessage('Ебать ты олух', -1)
+        if str:find("%[%d+%]Smoant_Despasito%[%d+%] говорит:") then
+            sampAddChatMessage('привет', -1)
         end
     end
 end
